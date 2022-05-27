@@ -1,0 +1,31 @@
+version: '3.4'
+
+services:
+  mssqlserver:
+        image: "mcr.microsoft.com/mssql/server"
+        ports:
+        - "1433:1433"
+        environment:
+            SA_PASSWORD: "c1e17321Aa"
+            ACCEPT_EULA: "Y"
+            MS_SQLPID: Express
+  nginx:
+    image: nginx:alpine
+    hostname: 'nginx'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf:ro
+      - ./nginx/logs/:/var/log/nginx/
+    ports:
+      - '81:80'
+    depends_on:
+      - chatserver
+    restart: always
+  chatserver:
+    image: ${DOCKER_REGISTRY-}chatserver
+    build:
+      context: .
+      dockerfile: ChatServer/Dockerfile
+    depends_on:
+      - mssqlserver
+
